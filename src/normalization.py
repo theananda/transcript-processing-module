@@ -4,10 +4,6 @@ import string
 import sys
 import json
 
-PY3 = sys.version_info[0] == 3
-if PY3:
-    string = str
-
 class normalizer:
 
  #ADD irrggular space possibilities in the follwing dict
@@ -26,7 +22,8 @@ class normalizer:
         {"from":"အ ?ဆို ?တင် ?သွင်း ?ခြင်း ?","to":"အဆိုတင်သွင်းခြင်း"},
         {"from":"အ ?ဆုံး ?အ ?ဖြတ် ?ရ ?ယူ ?ခြင်း ?","to":"အဆုံးအဖြတ်ရယူခြင်း"},
         {"from":"သည့် ?မေး ?ခွန်း","to":"သည့်မေးခွန်း"},
-        {"from":"။ ။$","to":"။"}
+        {"from":"။ ။$","to":"။"},
+        {"from":"နေ့ ?မှတ် ?တမ်း","to":"နေ့မှတ်တမ်း"}
         ]'''
 
 #ADD common Normalization rules in the following dict
@@ -66,7 +63,17 @@ class normalizer:
         {"from":"ဥကဋ","to":"ဥက္ကဋ္ဌ"},
         {"from":"ဥက္ကဋ။","to":"ဥက္ကဋ္ဌ။"}
         ]'''
-        
+
+#ADD XML Encoding characters and Special Characters here
+    _xml_encode_char_dict = '''[{"from": "&","to":""},
+        {"from":">","to":""},
+        {"from":"<","to":""},
+        {"from":"\\"","to":""},
+        {"from":"\'","to":""},
+        {"from":"“","to":""},
+        {"from":"”","to":""}]'''  
+        # 
+
         
     
     def whitespace_cleaner(self,input_string):
@@ -110,6 +117,15 @@ class normalizer:
             input_string = re.sub(rule["from"], rule["to"], input_string)
         return input_string
 
+    def xml_encode_char_normalizer(self,input_string=None):
+        """
+        Clean up xml encode characters
+        """
+        rules = json.loads(self._xml_encode_char_dict)
+        for rule in rules:
+            input_string = re.sub(rule["from"], rule["to"], input_string)
+        return input_string
+
     def wa_zero_normalizer(self,input_string=None):
         """
         Normalize Wa Lone 'ဝ' and Zero '၀'
@@ -141,5 +157,6 @@ class normalizer:
         input_string = self.misspelled_word_normalizer(input_string)
         input_string = self.mm_normalize(input_string)
         input_string = self.whitespace_cleaner(input_string)
+        input_string = self.xml_encode_char_normalizer(input_string)
         input_string = self.wa_zero_normalizer(input_string)
         return input_string
